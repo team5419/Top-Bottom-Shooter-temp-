@@ -1,13 +1,21 @@
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 
+import edu.wpi.first.wpilibj.XboxController;
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
  * each mode, as described in the TimedRobot documentation. If you change the name of this class or
@@ -19,8 +27,14 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
-
-  /**
+  private TalonFX mMotor;
+  private final int mMotorCanID = 10;
+  private XboxController mController;
+  private double currentEncoderPos;
+  private boolean IDontKnowWhatToCallThisVariable = true;
+  private int mMotorCurrentLimit = 20;
+  private final MotionMagicVoltage m_mmReq = new MotionMagicVoltage(0);  
+    /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
    */
@@ -28,7 +42,25 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
+    mMotor = new TalonFX(mMotorCanID);
+    mController = new XboxController(0);
     SmartDashboard.putData("Auto choices", m_chooser);
+    TalonFXConfiguration configs = new TalonFXConfiguration();
+    configs.TorqueCurrent.PeakForwardTorqueCurrent = 10;
+    configs.TorqueCurrent.PeakReverseTorqueCurrent = -10;
+    StatusCode status = StatusCode.StatusCodeNotInitialized;
+    mMotor.setRotorPosition(0);
+    configs.Slot0.kP = 2.4;
+    configs.Slot0.kD = 0.1;
+    configs.Slot1.kP = 40;  
+    configs.Slot1.kD = 2;
+    for (int i = 0; i < 5; ++i) {
+      status = mMotor.getConfigurator().apply(configs);
+      if (status.isOK()) break;
+    }
+    if(!status.isOK()) {
+      System.out.println("Could not apply configs, error code: " + status.toString());
+    }
   }
 
   /**
@@ -39,7 +71,9 @@ public class Robot extends TimedRobot {
    * SmartDashboard integrated updating.
    */
   @Override
-  public void robotPeriodic() {}
+  public void robotPeriodic() {
+
+  }
 
   /**
    * This autonomous (along with the chooser code above) shows how to select between different
@@ -78,7 +112,28 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    SmartDashboard.putNumber("Joystick X value", mController.getRightX());
+    // SmartDashboard.putNumber("motor Position", mMotor.getPosition());
+    System.out.println("motor position: " + mMotor.getPosition());
+    if(mController.getXButton()){
+      mMotor.set(0.1);
+    }
+    if(mController.getBButton()){
+      mMotor.set(0);
+    }
+    // if(mController.getXButton() && IDontKnowWhatToCallThisVariable){
+    //   currentEncoderPos = mMotor.getPosition().getValue();
+    //   IDontKnowWhatToCallThisVariable = false;
+    // }
+    // if(!IDontKnowWhatToCallThisVariable){
+    //   if(Math.abs((currentEncoderPos + 360) - (mMotor.getPosition().getValue())) < 10){
+    //     IDontKnowWhatToCallThisVariable = true;
+    //   }else{
+
+    //   }
+  //   }
+  }
 
   /** This function is called once when the robot is disabled. */
   @Override
