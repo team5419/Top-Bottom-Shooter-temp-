@@ -53,7 +53,7 @@ public class RobotContainer {
   private void configureBindings() {
     _arm.setDefaultCommand(ArmManual);
 
-    m_driverController.b().whileTrue(new armToPosition(_arm, 360));
+    m_driverController.b().whileTrue(new armToPosition(_arm, 40));
 
 
     m_driverController.a().onTrue(Commands.runOnce(() -> _arm.resetPosition(), _arm));

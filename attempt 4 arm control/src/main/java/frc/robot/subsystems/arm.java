@@ -46,16 +46,16 @@ public class arm extends SubsystemBase {
 
   public arm() {
     //right bicep
-    motor = new TalonFX(11); //change back to 42
+    motor = new TalonFX(42); //change back to 42
     encoder = new CANcoder(43); 
 
     var slot0Configs = new Slot0Configs();
-    slot0Configs.kP = 0.7;
+    slot0Configs.kP = 2.4;
     motor.getConfigurator().apply(slot0Configs,0.050);
     positioner.Slot = 0;
     TalonFXConfiguration cfg = new TalonFXConfiguration();
     cfg.Feedback.FeedbackRemoteSensorID = 43;
-    // cfg.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+    cfg.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
     motor.getConfigurator().apply(cfg);
     //left bicep
     follower = new TalonFX(41);
@@ -64,6 +64,9 @@ public class arm extends SubsystemBase {
 
   public void armToPosition(double targetPosition){
     SmartDashboard.putString("taggyvontaggems", "asdfghjkl");
+    SmartDashboard.putNumber("Closed Loosp Output", motor.getClosedLoopOutput().getValue());
+    SmartDashboard.putNumber("closed loop reference", motor.getClosedLoopReference().getValue());
+    SmartDashboard.putNumber("closed loop error", motor.getClosedLoopError().getValue());
     motor.setControl(positioner.withPosition(targetPosition));
     //m_setpoint = m_profile.calculate(0.020, m_setpoint, m_goal);
     // apply the setpoint to the control request
