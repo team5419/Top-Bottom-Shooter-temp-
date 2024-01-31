@@ -19,6 +19,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -30,13 +31,13 @@ import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 //test
 public class arm extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
-  private final PIDController pid = new PIDController(1,0,0); // change for talonFX pid 
+  // private final PIDController pid = new PIDController(1,0,0); // change for talonFX pid 
   
   private final TalonFX motor;
   private final TalonFX follower;
   private final CANcoder encoder;
 
-  private final PositionVoltage positioner = new PositionVoltage(0);
+  private final MotionMagicVoltage positioner = new MotionMagicVoltage(0);
   //final TrapezoidProfile m_profile = new TrapezoidProfile(
   // new TrapezoidProfile.Constraints(80, 160)
   //);
@@ -44,29 +45,48 @@ public class arm extends SubsystemBase {
  // TrapezoidProfile.State m_setpoint = new TrapezoidProfile.State();
   private final DutyCycleOut ds = new DutyCycleOut(0).withOverrideBrakeDurNeutral(true);
 
+  private double mSelectedPosition = 0;
+
   public arm() {
     //right bicep
     motor = new TalonFX(42); //change back to 42
     encoder = new CANcoder(43); 
 
-    var slot0Configs = new Slot0Configs();
-    slot0Configs.kP = 2.4;
-    motor.getConfigurator().apply(slot0Configs,0.050);
-    positioner.Slot = 0;
-    TalonFXConfiguration cfg = new TalonFXConfiguration();
-    cfg.Feedback.FeedbackRemoteSensorID = 43;
-    cfg.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
-    motor.getConfigurator().apply(cfg);
-    //left bicep
     follower = new TalonFX(41);
     follower.setControl(new Follower(42, true));
+
+    // motor.getConfigurator().apply(slot0Configs);
+    
+    var talonFXConfigs = new TalonFXConfiguration();
+
+    // set slot 0 gains
+    var slot0Configs = talonFXConfigs.Slot0;
+    // slot0Configs.kS = 0.24; // add 0.24 V to overcome friction
+    // slot0Configs.kV = 0.12; // apply 12 V for a target velocity of 100 rps
+    // PID runs on position
+    slot0Configs.kP = 4.8;
+    slot0Configs.kI = 0;
+    slot0Configs.kD = 0.1;
+
+    // set Motion Magic settings
+    var motionMagicConfigs = talonFXConfigs.MotionMagic;
+    motionMagicConfigs.MotionMagicCruiseVelocity = 40; // 80 rps cruise velocity
+    motionMagicConfigs.MotionMagicAcceleration = 160; // 160 rps/s acceleration (0.5 seconds)
+    // motionMagicConfigs.MotionMagicJerk = 1600; // 1600 rps/s^2 jerk (0.1 seconds)
+
+    motor.getConfigurator().apply(talonFXConfigs, 0.050);
+
+    // cfg.Feedback.FeedbackRemoteSensorID = 43;
+    // cfg.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+    // motor.getConfigurator().apply(cfg);
+    //left bicep
+
   }
 
   public void armToPosition(double targetPosition){
-    SmartDashboard.putString("taggyvontaggems", "asdfghjkl");
-    SmartDashboard.putNumber("Closed Loosp Output", motor.getClosedLoopOutput().getValue());
-    SmartDashboard.putNumber("closed loop reference", motor.getClosedLoopReference().getValue());
-    SmartDashboard.putNumber("closed loop error", motor.getClosedLoopError().getValue());
+    SmartDashboard.putNumber("target", targetPosition);
+
+    positioner.Slot = 0;
     motor.setControl(positioner.withPosition(targetPosition));
     //m_setpoint = m_profile.calculate(0.020, m_setpoint, m_goal);
     // apply the setpoint to the control request
@@ -88,7 +108,7 @@ public class arm extends SubsystemBase {
   }
 
   public void resetPosition() {
-    encoder.setPosition(0);
+    motor.setPosition(0);
   }
   /**
    * Example command factory method.
@@ -118,6 +138,12 @@ public class arm extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+    SmartDashboard.putString("taggyvontaggems", "test");
+    SmartDashboard.putNumber("Speed", motor.getClosedLoopOutput().getValue());
+    SmartDashboard.putNumber("position",motor.getPosition().getValue());
+    //SmartDashboard.putNumber("closed loop reference", motor.getClosedLoopReference().getValue());
+    SmartDashboard.putNumber("closed loop error", motor.getClosedLoopError().getValue());
+
   }
 
   @Override

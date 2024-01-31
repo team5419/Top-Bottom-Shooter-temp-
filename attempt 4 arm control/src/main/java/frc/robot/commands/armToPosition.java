@@ -20,9 +20,9 @@ public class armToPosition extends Command {
    *
    * @param subsystem The subsystem used by this command.
    */
-  private final int target;
+  private final double target;
   
-  public armToPosition(arm arm, int _target) {
+  public armToPosition(arm arm, double _target) {
     //m_subsystem = subsystem;
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(arm);
@@ -33,12 +33,12 @@ public class armToPosition extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    m_arm.armToPosition(target);
   }
-
+  
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    m_arm.armToPosition(target);
   }
 
   // Called once the command ends or is interrupted.
@@ -52,6 +52,7 @@ public class armToPosition extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return Math.abs(m_arm.position() - target) < 5;
+    // return Math.abs(m_arm.position() - target) < 5;
+    return false;
   }
 }

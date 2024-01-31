@@ -37,11 +37,10 @@ public class armManual extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {}
-
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    m_arm.manual(controller.getLeftY()/4);
+    m_arm.manual(controller.getLeftY());
     SmartDashboard.putNumber("outP",controller.getLeftY()/4);
     //if (controller.getLeftY() > 0.5){
     //  m_arm.manual(0.25);

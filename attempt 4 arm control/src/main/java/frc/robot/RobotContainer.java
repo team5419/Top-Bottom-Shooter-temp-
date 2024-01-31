@@ -30,6 +30,10 @@ public class RobotContainer {
   //private final armToPosition ArmToMid = new armToPosition(_arm,7);
   private final armManual ArmManual = new armManual(_arm);
 
+  private final int lowPos = 10;
+  private final int midPos = 20;
+  private final int highPos = 40; //change these values when you find better positions
+
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
@@ -51,9 +55,10 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    _arm.setDefaultCommand(ArmManual);
+    // _arm.setDefaultCommand(ArmManual);
 
-    m_driverController.b().whileTrue(new armToPosition(_arm, 40));
+    m_driverController.b().onTrue(new armToPosition(_arm, 1.31));
+    m_driverController.x().whileTrue(ArmManual);
 
 
     m_driverController.a().onTrue(Commands.runOnce(() -> _arm.resetPosition(), _arm));
